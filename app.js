@@ -2,34 +2,55 @@
 
 
 
-import { classesList, stats, skills, skillsProf, skillsExp, equip, spells} from '/modules/objects.js';
+import { classesList, stats, skillsProf, skillsExp, equip, spells} from '/modules/objects.js';
 import {character} from '/modules/classes.js';
 
-export const onInit = function(obj){
-    const hero1 = new character('', '', '', '', '', stats, classesList, skills, equip, spells);
 
-    hero1.name              = 'Tavalas';
-    hero1.race              = 'Human';
-    hero1.lv                = 5;
-    hero1.stats.str         = 8;
-    hero1.stats.dex         = 14;
-    hero1.stats.cos         = 14;
-    hero1.stats.int         = 8;
-    hero1.stats.wis         = 14;
-    hero1.stats.cha         = 14;
-    hero1.classes[0]        = 'Rogue';
-    hero1.classes[1]        = 'Rogue';
-    hero1.classes[2]        = 'Rogue';
-    hero1.classes[3]        = 'Bard';
-    hero1.classes[4]        = 'Bard';
-    hero1.equip.armor       = 'Scale Mail';
-    hero1.equip.leftHand    = 'Shield';
-    hero1.equip.rightHand   = 'Rapier';
+const onModelsLoad = ()=>{
+   let  aUrls = ['/models/equipment.json', '/models/classes.json']
+   let  aModels = []
+    loadJson(aUrls,aModels)
+};
 
-    hero1.ATTACK(obj, 'Rapier', 11)
-    
-    console.log(hero1);
+
+const loadJson = (aUrls,models)=>{
+    let url = aUrls[0];
+    fetch(url)
+    .then(res => res.json())
+    .then((out) => {
+        console.log('Output: ', out);
+        models.push(out);
+        let newaUrl = aUrls.filter(v=>v != url);
+        if(newaUrl.length > 0) loadJson(newaUrl,models);
+        else  return onInit(models);
+    }).catch(err => console.error(err));
 }
+
+export function onInit(oModel){
+    const oEquipModel = oModel[0];
+    const oClassesModel = oModel[1];
+    const hero1 = new character(
+        'Tavalas',
+        'Human',
+        null,
+        null,
+        5,
+        {str: 8, dex: 14, cos: 14, int: 8, wis: 14, cha: 14},
+        ['Rogue','Rogue','Rogue','Bard','Bard'],
+        null,
+        {armor:'Scale mail', leftHand:'Shield', rightHand:'Rapier'},
+        null
+    );
+   console.log(hero1);
+
+    hero1.ATTACK(oEquipModel, 'Rapier', 11);
+    hero1.CA(oEquipModel);
+    hero1.ST(oClassesModel,'Dexterity');
+}
+
+onModelsLoad();
+
+
 
 
   
