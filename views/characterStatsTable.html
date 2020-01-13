@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Character Table</title>
+</head>
+<body>
+    <main>
+        <section>
+            <h1>${name} Stats</h1>
+            <article>
+                <h3>${name}</h3>
+                <h4><em>${race}</em></h4>
+                <h5><b>${lv}</b></h5>
+
+                <h3>Background</h3>
+                <ul>
+                    <li>${diet}</li>
+                    <li>${bond}</li>
+                </ul>
+
+                <h3>Vita</h3>
+                <ul>
+                    <li>${lifeDice.type}</li>
+                    <li>${lifeDice.number}</li>
+                </ul>
+
+                <h3>Caratteristiche</h3>
+                <ul>
+                    <li>${stats.str}</li>
+                    <li>${stats.dex}</li>
+                    <li>${stats.cos}</li>
+                    <li>${stats.int}</li>
+                    <li>${stats.wis}</li>
+                    <li>${stats.cha}</li>
+                </ul>
+
+                <h3>Classi</h3>
+                <ul>
+                <!--  ${oClasses.map(oClass => }-->
+                    <li>${oClass}</li>
+                <!-- ).join('') -->
+                </ul>
+                
+                <h3>Equipaggiamento</h3>
+                <ul>
+                    <li>${equip.armor}</li>
+                    <li>${equip.leftHand}</li>
+                    <li>${equip.rightHand}</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

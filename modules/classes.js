@@ -1,11 +1,29 @@
 
+export class Day {
+    constructor(startDate, currentDate, previusDate, endDate){
+        this.startDate   = startDate;
+        this.currentDate = currentDate;
+        this.previusDate = previusDate;
+        this.endDate    = endDate;
+    }
+    dayCicle = function(){
+        setInterval(()=>{
+          let newHour =  this.currentDate.getHours() +1;
+          console.log('ora corrente : '+ this.currentDate.getDate() +'/'+ this.currentDate.getMonth() +'/'+this.currentDate.getFullYear() +'/  '+this.currentDate.getHours()+ '::'+this.currentDate.getMinutes());
+          return this.currentDate.setHours(newHour);
+         },60000);
+    }
+};
+
 export class character {
-    constructor(name, race, diet, bond, lv, stats, classes, skills, equip, spells) {
+    constructor(name, race, diet, bond, lv, lifeDice, state, stats, classes, skills, equip, spells) {
         this.name       = name;
         this.race       = race;
         this.diet       = diet;
         this.bond       = bond;
         this.lv         = lv;
+        this.lifeDice   = lifeDice;
+        this.state       = state;
         this.stats      = stats;
         this.classes    = classes;
         this.skills     = skills;
@@ -17,6 +35,7 @@ export class character {
         //trovo l'arma nella tabella
         //obj.Equipment.Weapons['Weapons List']['Martial Melee Weapons'].table
         let aWeaponList = obj.Equipment.Weapons['Weapons List'];
+        let hitScore              = this.rollDice(20,1);;
         let oTable;
         let weaponIndex;
 
@@ -32,7 +51,7 @@ export class character {
             }
         }
 
-        if (weaponIndex){
+        if (weaponIndex && hitScore != 1){
             let sWeaponDpsDesc        = oTable.Damage[weaponIndex];//1d8 piercing
             let sWeaponPropertiesDesc = oTable.Properties[weaponIndex];//Finesse
             let sWeaponDpsDices       = sWeaponDpsDesc.split(' ')[0];//'1d8'
@@ -40,9 +59,9 @@ export class character {
             let iWeaponDpsDicesNumber = +(sWeaponDpsDices.split('d')[0]);//'1'
             let iWeaponDpsDicesType   = +(sWeaponDpsDices.split('d')[1]);//'8'
             let iProf                 = this.getProficency(this.lv);
-            let diceScore             = this.rollDice(iWeaponDpsDicesType,iWeaponDpsDicesNumber)
+            let diceScore             = hitScore == 20 ? this.rollDice(iWeaponDpsDicesType,iWeaponDpsDicesNumber) : this.rollDice(iWeaponDpsDicesType,iWeaponDpsDicesNumber +1);
             let iStat;
-
+          
             switch(sWeaponPropertiesDesc){
                 case "Finesse" || "Finesse, light" || "Finesse, reach":
                     iStat = this.getMod(this.stats.dex);
@@ -51,9 +70,15 @@ export class character {
             }
 
             let r = iStat + iProf + diceScore;
-            console.log('stat('+iStat+') + '+'prof('+iProf+') + '+'score dado('+diceScore+') + '+' => DPS tot: '+ r);
 
+            if(hitScore == 20 ) console.log('D20 =>' + hitScore + ' CRITICO!');         
+            else                console.log('D20 =>' + hitScore);  
+            console.log('stat('+iStat+') + '+'prof('+iProf+') + '+'score dado('+diceScore+') + '+' => DPS tot: '+ r);
             return r;
+        }
+        else if (weaponIndex && hitScore == 1){
+            console.log('D20 =>' + hitScore + ' TIRO FALLITO!'); 
+            return 'Uno naturale, TIRO FALLITO!!'
         }
         else{
             console.log('Nessuna arma equipaggiata!');
@@ -61,7 +86,8 @@ export class character {
         }
     };
 
-    CA = function(obj){
+
+    AC = function(obj){
         //obj.equipJson.Equipment.Armor['Armor List']['Medium Armor'].table.Armor[2]
         let aArmorList   = obj.Equipment.Armor['Armor List'];
         let iDexBonus    = this.getMod(this.stats.dex);
@@ -115,16 +141,85 @@ export class character {
         let r         = statBonus + saveProf;
         console.log('sat('+statBonus+') +' + 'prof('+saveProf+') => ST tot: '+ r)
         return r;
-    }
+    };
 
-    HP = function(oClassesModel){
-        let sDiceDescPerLv = oClassesModel[this.classes[0]]['Class Features']["Hit Points"].content[3].split('** ')[1].slice(0,4);
-        let iDiceNumberPerLv = sDiceDescPerLv.split('d')[1].trim();
-        let iDiceTypePerLv = sDiceDescPerLv.split('d')[0];
-    }
+    setNewHP = function(oClassesModel){
+        /*esempio di oggetto hit points:
+            MODEL['Nome classe']['Class Features']["Hit Points"]
+            .content[2] =  "**Hit Points at Higher Levels:** 1d8 (or 5) + your Constitution modifier per rogue level after 1st";
+        */
+       /*
+        let sDiceDescPerLv    = oClassesModel[this.classes[0]]['Class Features']["Hit Points"].content[2].split('** ')[1].slice(0,4);
+        let iDiceNumberPerLv  = +(sDiceDescPerLv.split('d')[0]);
+        let iDiceTypePerLv    = +(sDiceDescPerLv.split('d')[1].trim());
+        */
+        let iCosBonus         = this.getMod(this.stats.cos);
+        let iHpScorePerLv     = this.state.hp.max > 0 ? this.rollDice(this.lifeDice.type,this.lifeDice.number) : this.lifeDice.type*his.lifeDice.number;
+        let r                 = this.state.hp.max + iCosBonus + iHpScorePerLv;
+        console.log('currentHp('+this.state.hp.max+') + cosBonus('+iCosBonus+') + hpScore('+ iHpScorePerLv+') => HP tot: '+ r)
+        return this.state.hp.max = r;
+    };
 
-    TxC = function(){
+    REST = function(iOre,oDay,iNumberLifeDice){
+        //è lungo o breve?
+            //se lungo:
+                // ho già fatto un riposo lungo nelle ultime 24 ore ?
+                    //se si=> errore
+                    //se no: 
+                        //il pg indossa un armatura normale o media?
+                            //sei si =>recuperi solo 1/4 dei dice life spesi + ts cos (cd 10) per soffrire non soffrire di 1 lv di esaustione
+                            //se no =>ristora tutti i hp, tutte le spell e meta dei life dice
+            //se breve
+                // ho già fatto 2 riposi brevi nelle ultime 24 ore ?
+                    //se si => errore
+                    //se no:
+                        //il pg indossa un armatura normale o media?
+                            //se no => recupero dadi vita in base a quanti dad vita spendo ( max lv)
+                            //se si => bho
 
+        let toDay           = oDay.currentDate;
+        let tomorrow        = new Date(toDay.getFullYear(), toDay.getMonth(), toDay.getDate(), toDay.getHours() + iOre, toDay.getMinutes());
+        let longRest        = iOre >= 8 && tomorrow.getHours() >=  oDay.previusDate.getHours() + 24;
+        let shortRest   = this.state.restSlot == 2 || longRest ? false : true;
+    
+        if(longRest){
+            let currentLifeDice = this.state.lifeDice;
+            let totLifeDice     = this.lv;
+
+            //mando avanti di un giorno lo state dell'oggetto giorno e 
+            //salvo il giorno corrente come giorno passato
+            oDay.previusDate    = toDay;
+            oDay.currentDate    = tomorrow;
+
+            //essendo un nuovo giorno resetto gli slot usati di short rest
+            this.state.restSlot = 0;
+            this.state.lifeDice = currentLifeDice + (totLifeDice/2) > totLifeDice ? totLifeDice : currentLifeDice + (totLifeDice/2);
+
+            //salvo il nuovo valore nei temporary hp
+            console.log('HP: '+this.state.hp.temporary+', dadi vita:'+this.stat.lifeDice+', rest slot: '+this.state.restSlot)
+            return this.state.hp.temporary = this.state.hp.max;
+        } 
+        else if(shortRest){
+            let expendedSlotDiceLife = this.state.lifeDice >= iNumberLifeDice ? iNumberLifeDice : this.state.lifeDice
+            let roll = this.rollDice(this.lifeDice.type, this.lifeDice.number * expendedSlotDiceLife);
+            let point = roll + this.getMod(this.stats.cos);
+
+            //spendo gli slot usati di short rest
+            this.state.lifeDice = this.state.hp.temporary == this.state.hp.max ? this.state.lifeDice : this.state.lifeDice - expendedSlotDiceLife;
+
+            //salvo il nuovo valore nei temporary hp
+            this.state.hp.temporary = this.setRecoveredHP(point);
+            console.log('HP: '+this.state.hp.temporary+', dadi vita:'+this.state.lifeDice+', rest slot: '+this.state.restSlot)
+            return this.state.hp.temporary;
+
+        } else{
+            console.log('spiacente non hai più riposi disponibili!')
+        }
+
+    };
+
+    setRecoveredHP = function(newHp){
+        return this.state.hp.temporary + newHp >= this.state.hp.max ? this.state.hp.max : this.state.hp.temporary + newHp;
     }
 
     getMod = function(stat){
@@ -140,23 +235,12 @@ export class character {
     rollDice = function(dice,number) {
         let r = 0;
         for(let i=0;i<number;i++){
-            r = r +Math.round(Math.random()*dice+1);
+            let min = Math.ceil(1);
+            let max = Math.floor(dice);
+            r = r + Math.floor(Math.random() * (max - min + 1)) + min; //Il max è incluso e il min è incluso 
         }
         return r;
     }
   }
-
-
-class Hero {
-    constructor(name, level) {
-        this.name = name;
-        this.level = level;
-    }
-
-    // Adding a method to the constructor
-    greet() {
-        return `${this.name} says hello.`;
-    }
-}
 
 
