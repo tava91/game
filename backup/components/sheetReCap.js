@@ -18,6 +18,12 @@ export class sheetRecap {
                     <li>${this.State.Character.Bond}</li>
                 </ul>
     
+                <h3>Vita</h3>
+                <ul>
+                    <li>${this.State.Character['Life dice'].type}</li>
+                    <li>${this.State.Character['Life dice'].number}</li>
+                </ul>
+    
                 <h3>Caratteristiche</h3>
                 <ul>
                     <li>${this.State.Character.Stats.str}</li>

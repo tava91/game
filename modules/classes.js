@@ -133,7 +133,9 @@ export class character {
     };
 
     ST = function(oClassesModel,sSaves){
-        let aSaves    = oClassesModel[this.classes[0]]['Class Features'].Proficiencies.content[3].split('** ')[1].split(', ');
+        let aProfs     = oClassesModel[this.classes[0]]['Class Features'].Proficiencies.content;
+        let sSkillDesc = aProfs.filter(item => item.substring(2,8) == 'Skills');
+        let aSaves    = sSkillDesc[0].split('** ')[1].split(', ');
         let saveStat  = sSaves.slice(0,3).toLowerCase();
         let iProf     =  this.getProficency(this.lv);
         let saveProf  = aSaves.includes(sSaves) ? iProf : 0;
@@ -142,6 +144,18 @@ export class character {
         console.log('sat('+statBonus+') +' + 'prof('+saveProf+') => ST tot: '+ r)
         return r;
     };
+
+    lifeDace = (oClassesModel,sClass)=>{
+        //"**Hit Dice:** {{0}}d{{00}} per {{classname}} level"
+            let list         = oClassesModel[sClass]
+            let aHitpoints   = list[sClass]['Class Features']['Hit Points'].content;
+            let sHitDiceDesc = aHitpoints.filter(item => item.substring(2,10) == 'Hit Dice');
+            let sDice        = sHitDiceDesc[0].split('** ')[1].substring(0,4);
+            let iType        = sDice.substring(2,4);
+            let iNumber      = sDice.substring(0,1);
+            console.log([iType,iNumber]);
+    }
+
 
     setNewHP = function(oClassesModel){
         /*esempio di oggetto hit points:

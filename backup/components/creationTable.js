@@ -1,5 +1,3 @@
-import {sheetRecap} from "http://tavarelli91.altervista.org/dnd/components/sheetReCap.js";
-
 export class editSheetTable {  
     constructor(id,State){
         this.id = id,
@@ -9,7 +7,7 @@ export class editSheetTable {
     render = (id)=>{
         document.getElementById(id)
         .innerHTML = (
-            `<form action="http://tavarelli91.altervista.org/dnd/server.php" method="post">
+            `<form action="/api" method="post">
                 <fieldset>
                     <h4>Background</h4>
                     <label>Nome</label>
@@ -38,18 +36,17 @@ export class editSheetTable {
                 </fieldset>
                 <fieldset>
                     <label>Classe</label>
-                    <select id="classesInput" required class="info" placeholder="Seleziona una classe" name="Classes[0]">
+                    <select class="info" placeholder="Seleziona una classe" name="Classes[0]">
                         <option value="">Seleziona una classe</option>
-                        ${this.State.Classes.list.map(item => 
+                        ${this.State.Classes.map(item => 
                             `<option name="${item}" value="${item}">${item}</option>`
                         ).join('')}
                 </select>
                 </fieldset>
-
                 <fieldset>
                     <h4>Equipaggiamento</h4>
                     <label>Armatura</label>
-                    <select required class="info" placeholder="Seleziona un armatura" name="Equip.armor">
+                    <select class="info" placeholder="Seleziona un armatura" name="Equip.armor">
                         <option value="">Senza armatura</option>
                         <option value="">Padded (Armature leggere)</option>
                         <option value="">Leather (Armature leggere)</option>
@@ -68,7 +65,7 @@ export class editSheetTable {
                     </select>
             
                     <label>Mano destra</label>
-                    <select required class="info" placeholder="Seleziona un equipaggiamento" name="Equip.rightEnd">
+                    <select class="info" placeholder="Seleziona un equipaggiamento" name="Equip.rightEnd">
                         <option value="">Mano destra vuota</option>
                         <option value="Shield">Scudo</option>
                         <option value="Club">Club (Arma leggera)</option>
@@ -111,7 +108,7 @@ export class editSheetTable {
                     </select>
 
                     <label>Mano sinistra</label>
-                    <select required class="info" placeholder="Seleziona un equipaggiamento" name="Equip.leftHand">
+                    <select class="info" placeholder="Seleziona un equipaggiamento" name="Equip.leftHand">
                         <option value="">Mano sinistra vuota</option>
                         <option value="Shield">Scudo</option>
                         <option value="Club">Club (Arma leggera)</option>
@@ -160,7 +157,6 @@ export class editSheetTable {
             </form>`
         );
     }
-
    
     submit = (event)=>{
         event.preventDefault();
@@ -172,6 +168,8 @@ export class editSheetTable {
         for (let info of aInfos){
             let aName = info.name.split('.');
             let value = info.value;
+            if(value == 'Bardo')debugger;
+
             for (let i=0;i < aName.length;i++){
                 let v = aName[i].split('[');
                 let isArray = v.length > 1;
@@ -203,26 +201,21 @@ export class editSheetTable {
             };
         }
         console.log('obj => '+obj);
-        let json = JSON.stringify(obj);
-        let url = 'http://tavarelli91.altervista.org/dnd/server.php';
-        let self = this;
 
-        fetch(url, {
+        fetch('../server.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: json
+            //mode: 'no-cors',
+            body: JSON.stringify(obj)
         }).then(function(response) {
+            debugger;
+
             if (response.ok) {
-                //re renero con lo state aggiornato il componente che voglio modificare
-                let riepilogo = new sheetRecap('sheetReCap', { 
-                    Character: obj
-                },this);
-                riepilogo.render('sheetReCap');
-            } 
-            else {
+                return response.json();
+            } else {
                 throw new Error('Something went wrong');
             }
         }).then(function(data) {
